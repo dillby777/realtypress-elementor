@@ -19,8 +19,8 @@ class RPS_Elementor_Dynamic_Tag extends \Elementor\Core\DynamicTags\Tag {
 
 	public function get_categories() {
 		return [ 
-			\Elementor\Modules\DynamicTags\Module::URL_CATEGORY,
-		    	\Elementor\Modules\DynamicTags\Module::TEXT_CATEGORY,
+		    \Elementor\Modules\DynamicTags\Module::URL_CATEGORY,
+		    \Elementor\Modules\DynamicTags\Module::TEXT_CATEGORY,
 			\Elementor\Modules\DynamicTags\Module::NUMBER_CATEGORY,
 			\Elementor\Modules\DynamicTags\Module::COLOR_CATEGORY,	
 			\Elementor\Modules\DynamicTags\Module::POST_META_CATEGORY
@@ -64,7 +64,60 @@ class RPS_Elementor_Dynamic_Tag extends \Elementor\Core\DynamicTags\Tag {
             );
 			
 		}
-	    
+		
+		$this->add_control(	'combiner',
+			[
+				'label' => __( 'Field Combining', 'realtypress-elementor-dynamic-tags'),
+				'type' => \Elementor\Controls_Manager::SWITCHER,
+			]
+		);
+		
+		$this->add_control(	'combiner_delim',
+			[
+				'label' => __( 'Fields Delimiter', 'realtypress-elementor-dynamic-tags'),
+				'type' => \Elementor\Controls_Manager::TEXT,
+				'condition' => [
+                        'combiner' => 'yes',
+                    ],
+			]
+		);
+		
+		$combiners_num = 5;
+		if ($combiners_num > 1) {
+        	for ($i = 1; $i <= $combiners_num; $i++) {
+    			$this->add_control('rps_listing_group__'.$i,
+            		[
+            			'type' => \Elementor\Controls_Manager::SELECT,
+            			'label' => __( 'RPS Field Group '. $i, 'realtypress-elementor-dynamic-tags'),
+            			'options' => $rps_groups,
+            			'condition' => [
+                                'combiner' => 'yes',
+                            ],
+            		]
+        	    );
+        	    
+        	    
+        	    foreach ( array_keys( $property ) as $group) {
+        	        $rps_fields = [];
+        	        foreach ( array_keys( $property[$group] ) as $fields) {
+        			    $rps_fields[ $fields ] = ucwords( str_replace( '_', ' ', $fields ) );
+        		    }
+        
+        			$this->add_control('rps_listing_field__'.$i .'_'.$group,
+                        [
+                            'label' => __( 'RPS `'.$group.'` Fields '.$i, 'realtypress-elementor-dynamic-tags'),
+                            'type' => \Elementor\Controls_Manager::SELECT,
+                            'options' => $rps_fields,
+                            'condition' => [
+                                'rps_listing_group__'.$i => $group,
+                            ],
+                        ]
+                    );
+        	    }   
+    		}
+		}
+
+    	
     	$this->add_control(	'RPS Callbacks',
 			[
 				'label' => __( 'RPS Callbacks', 'realtypress-elementor-dynamic-tags'),
@@ -90,17 +143,37 @@ class RPS_Elementor_Dynamic_Tag extends \Elementor\Core\DynamicTags\Tag {
 	    $keys = array_keys($property);
 	    
 	    $user_selected_variable = $this->get_settings( 'Private Fields' );
+	    $combining = $this->get_settings( 'combiner' );
+	    $combine_num = 5;
+	    $combine_delim = $this->get_settings( 'combiner_delim' ). ' ';
 	    $callback = $this->get_settings( 'RPS Callbacks' );
-
+	    
 		if ( !$selected_top_level_array ||  !$selected_group_fields) {
 			return;
 		}
 
 		if (is_array($property[$selected_top_level_array][ $selected_group_fields ])) {
-            $return = "The variable is an array.";
+            echo "The variable is an array, Can't be used here yet.";
+            return;
         } else {
             $return = $property[$selected_top_level_array][ $selected_group_fields ];
         }
+
+        if ($combining == 'yes'){
+            for ($i = 1; $i <= $combine_num; $i++) {
+                $combine_top_level_array = $this->get_settings( 'rps_listing_group__'.$i );
+                $combine_group_fields = $this->get_settings( 'rps_listing_field__'.$i .'_'.$combine_top_level_array );
+                
+                if ($combine_top_level_array && $combine_group_fields){
+                    $return = $return . $combine_delim . $property[$combine_top_level_array][ $combine_group_fields ];
+                }
+            }
+        }
+        
+        
+        
+        
+        
         
         if ($callback == 'RPS_Fix_Case'){
             echo rps_fix_case($return);
@@ -130,7 +203,6 @@ class RPS_Elementor_Dynamic_Tag__photos extends \Elementor\Core\DynamicTags\Data
 			\Elementor\Modules\DynamicTags\Module::IMAGE_CATEGORY,
 			\Elementor\Modules\DynamicTags\Module::MEDIA_CATEGORY,
 			\Elementor\Modules\DynamicTags\Module::GALLERY_CATEGORY,
-			\Elementor\Modules\DynamicTags\Module::POST_META_CATEGORY
 		    ];
 	}
 	
@@ -142,6 +214,10 @@ class RPS_Elementor_Dynamic_Tag__photos extends \Elementor\Core\DynamicTags\Data
 	    $property = $crud->get_post_listing_details($current_post_id);
 	    //$property  = $crud->categorize_listing_details_array($property);
 	    $property_photos = $crud->get_local_listing_photos( $property['ListingID'] );
+	    
+		foreach ( array_keys( $property_photos ) as $photo) {
+			$rps_photos[ $photo ] = $photo;
+		}
 		
 		$this->add_control('rps_photo_type',
 			[
@@ -150,9 +226,9 @@ class RPS_Elementor_Dynamic_Tag__photos extends \Elementor\Core\DynamicTags\Data
 				'options' => $variables,
 			]
 		);
-				
+
     		
-        	$this->add_control(	'fallback',
+        $this->add_control(	'fallback',
 			[
 				'label' => __( 'Fallback', 'realtypress-elementor-dynamic-tags'),
 				'type'  => \Elementor\Controls_Manager::MEDIA,
@@ -168,9 +244,10 @@ class RPS_Elementor_Dynamic_Tag__photos extends \Elementor\Core\DynamicTags\Data
 	    $property  = $crud->categorize_listing_details_array($property);
 	    $keys = array_keys($property);
 	    
-	    $rps_photo_type = $this->get_settings( 'rps_photo_type' );      
+	    $rps_photo_type = $this->get_settings( 'rps_photo_type' );
         
         if ( $rps_photo_type == 'single') {
+
             $single_img = $property['property-photos'][0];
             $single_img = json_decode($single_img['Photos'], true);
             $img =[
