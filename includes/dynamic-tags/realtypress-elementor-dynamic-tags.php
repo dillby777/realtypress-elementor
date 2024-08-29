@@ -19,13 +19,10 @@ class RPS_Elementor_Dynamic_Tag extends \Elementor\Core\DynamicTags\Tag {
 
 	public function get_categories() {
 		return [ 
-		    \Elementor\Modules\DynamicTags\Module::URL_CATEGORY,
-		    \Elementor\Modules\DynamicTags\Module::TEXT_CATEGORY,
+			\Elementor\Modules\DynamicTags\Module::URL_CATEGORY,
+		    	\Elementor\Modules\DynamicTags\Module::TEXT_CATEGORY,
 			\Elementor\Modules\DynamicTags\Module::NUMBER_CATEGORY,
 			\Elementor\Modules\DynamicTags\Module::COLOR_CATEGORY,	
-			\Elementor\Modules\DynamicTags\Module::IMAGE_CATEGORY,
-			\Elementor\Modules\DynamicTags\Module::MEDIA_CATEGORY,
-			\Elementor\Modules\DynamicTags\Module::GALLERY_CATEGORY,
 			\Elementor\Modules\DynamicTags\Module::POST_META_CATEGORY
 		    ];
 	}
