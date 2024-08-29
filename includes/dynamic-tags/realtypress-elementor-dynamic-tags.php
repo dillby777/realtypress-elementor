@@ -138,17 +138,13 @@ class RPS_Elementor_Dynamic_Tag__photos extends \Elementor\Core\DynamicTags\Data
 	}
 	
 	protected function register_controls() {
-		$variables = ['single'=>'Single','gallery'=>'Gallery'];
+		$variables = ['single'=>'First Image','gallery'=>'Gallery'];
 		$rps_photos=[];
 		$current_post_id = get_the_ID();
 	    $crud = new RealtyPress_DDF_CRUD( date('Y-m-d') );
 	    $property = $crud->get_post_listing_details($current_post_id);
 	    //$property  = $crud->categorize_listing_details_array($property);
 	    $property_photos = $crud->get_local_listing_photos( $property['ListingID'] );
-	    
-		foreach ( array_keys( $property_photos ) as $photo) {
-			$rps_photos[ $photo ] = $photo;
-		}
 		
 		$this->add_control('rps_photo_type',
 			[
@@ -157,20 +153,9 @@ class RPS_Elementor_Dynamic_Tag__photos extends \Elementor\Core\DynamicTags\Data
 				'options' => $variables,
 			]
 		);
-		
-		$this->add_control('rps_single_photo_select',
-			[
-				'type' => \Elementor\Controls_Manager::SELECT,
-				'label' => __( 'RPS Single Photo Select', 'realtypress-elementor-dynamic-tags'),
-				'options' => $rps_photos,
-				'condition' => [
-                        'rps_photo_type' => 'single',
-                    ],
-			]
-		);
-		
+				
     		
-        $this->add_control(	'fallback',
+        	$this->add_control(	'fallback',
 			[
 				'label' => __( 'Fallback', 'realtypress-elementor-dynamic-tags'),
 				'type'  => \Elementor\Controls_Manager::MEDIA,
@@ -186,13 +171,10 @@ class RPS_Elementor_Dynamic_Tag__photos extends \Elementor\Core\DynamicTags\Data
 	    $property  = $crud->categorize_listing_details_array($property);
 	    $keys = array_keys($property);
 	    
-	    $rps_photo_type = $this->get_settings( 'rps_photo_type' );
-	    $rps_single_photo = $this->get_settings( 'rps_single_photo_select' );
-
-        
+	    $rps_photo_type = $this->get_settings( 'rps_photo_type' );      
         
         if ( $rps_photo_type == 'single') {
-            $single_img = $property['property-photos'][$rps_single_photo];
+            $single_img = $property['property-photos'][0];
             $single_img = json_decode($single_img['Photos'], true);
             $img =[
                 'url' => $single_img['LargePhoto']['filename']
